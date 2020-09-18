@@ -5,6 +5,7 @@ import { verify, decode } from 'jsonwebtoken'
 import { createLogger } from '../../utils/logger'
 import Axios from 'axios'
 import { Jwt } from '../../auth/Jwt'
+import { Jwks, Key } from '../../auth/Jwks'
 import { JwtPayload } from '../../auth/JwtPayload'
 
 const logger = createLogger('auth')
@@ -12,7 +13,7 @@ const logger = createLogger('auth')
 // TODO: Provide a URL that can be used to download a certificate that can be used
 // to verify JWT token signature.
 // To get this URL you need to go to an Auth0 page -> Show Advanced Settings -> Endpoints -> JSON Web Key Set
-const jwksUrl = '...'
+const jwksUrl = 'https://dev-ywg5i4do.eu.auth0.com/.well-known/jwks.json'
 
 export const handler = async (
   event: CustomAuthorizerEvent
@@ -55,13 +56,46 @@ export const handler = async (
 }
 
 async function verifyToken(authHeader: string): Promise<JwtPayload> {
-  const token = getToken(authHeader)
-  const jwt: Jwt = decode(token, { complete: true }) as Jwt
+  
+  
 
   // TODO: Implement token verification
   // You should implement it similarly to how it was implemented for the exercise for the lesson 5
   // You can read more about how to do this here: https://auth0.com/blog/navigating-rs256-and-jwks/
-  return undefined
+
+  try
+  {
+    //Follow 6 steps from https://auth0.com/blog/navigating-rs256-and-jwks/
+
+    //1. Retrieve the JWKS and filter for potential signature verification keys
+    const jwks: Jwks = await Axios.get(jwksUrl);
+
+    //2. Extract the JWT from the request's authorization header. [Note this code was provided in starter template]
+    const token = getToken(authHeader)
+    const jwt: Jwt = decode(token, { complete: true }) as Jwt
+    
+    //3. Decode the JWT and grab the kid property from the header.
+    const jwtKid = jwt.header.kid
+
+    //4. Find the signature verification key in the filtered JWKS with a matching kid property. 
+    const signatureVerificationKey: Key = jwks.keys.filter(key => key.kid == jwtKid)[0]
+
+    //5. Using the x5c property build a certificate which will be used to verify the JWT signature.
+    let x5cCertificate = `-----BEGIN CERTIFICATE-----\n${signatureVerificationKey.x5c[0]}\n-----END CERTIFICATE-----`;
+    logger.info('X5C Certificate is ', x5cCertificate)
+
+    //6. Ensure the JWT contains the expected audience, issuer, expiration, etc.
+    verify(token,x5cCertificate)
+    
+    return Promise.resolve(jwt.payload);
+  }
+  catch(e)
+  {
+    logger.error(e)
+  }
+
+
+  
 }
 
 function getToken(authHeader: string): string {
