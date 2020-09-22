@@ -76,25 +76,21 @@ resources:
       Type: AWS::DynamoDB::Table
       Properties:
         AttributeDefinitions:
-          - AttributeName: partitionKey
+          - AttributeName: todoId
             AttributeType: S
-          - AttributeName: sortKey
-            AttributeType: S
-          - AttributeName: indexKey
+          - AttributeName: userId
             AttributeType: S
         KeySchema:
-          - AttributeName: partitionKey
+          - AttributeName: todoId
             KeyType: HASH
-          - AttributeName: sortKey
-            KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.TODOS_TABLE}
-        LocalSecondaryIndexes:
+        GlobalSecondaryIndexes:
           - IndexName: ${self:provider.environment.INDEX_NAME}
             KeySchema:
-              - AttributeName: partitionKey
+              - AttributeName: todoId
                 KeyType: HASH
-              - AttributeName: indexKey
+              - AttributeName: userId
                 KeyType: RANGE
             Projection:
               ProjectionType: ALL # What attributes will be copied to an index
