@@ -38,6 +38,9 @@ functions:
       - http:
           method: get
           path: todos
+          cors: true
+          authorizer: Auth
+          reqValidatorName: RequestBodyValidator
 
   # TODO: Configure this function
   CreateTodo:
@@ -86,6 +89,17 @@ functions:
 resources:
   Resources:
     # TODO: Add any necessary AWS resources
+    GatewayResponseDefault4XX:
+      Type: AWS::ApiGateway::GatewayResponse
+      Properties:
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+          gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST'"
+        ResponseType: DEFAULT_4XX
+        RestApiId:
+          Ref: ApiGatewayRestApi
+
     TodosTable:
       Type: AWS::DynamoDB::Table
       Properties:

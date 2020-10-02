@@ -63,22 +63,31 @@ async function verifyToken(authHeader: string): Promise<JwtPayload> {
   // You should implement it similarly to how it was implemented for the exercise for the lesson 5
   // You can read more about how to do this here: https://auth0.com/blog/navigating-rs256-and-jwks/
 
-  try
-  {
+  
     //Follow 6 steps from https://auth0.com/blog/navigating-rs256-and-jwks/
 
     //1. Retrieve the JWKS and filter for potential signature verification keys
-    const jwks: Jwks = await Axios.get(jwksUrl);
+    const jwks = await Axios.get(jwksUrl);
+    logger.info(jwks)
+
+    var jwksKeys: Jwks = jwks.data.keys;
+    logger.info(jwksKeys)
 
     //2. Extract the JWT from the request's authorization header. [Note this code was provided in starter template]
     const token = getToken(authHeader)
+    logger.info(token)
+
     const jwt: Jwt = decode(token, { complete: true }) as Jwt
+    logger.info(jwt)
     
     //3. Decode the JWT and grab the kid property from the header.
     const jwtKid = jwt.header.kid
+    logger.info(jwtKid)
 
     //4. Find the signature verification key in the filtered JWKS with a matching kid property. 
-    const signatureVerificationKey: Key = jwks.keys.filter(key => key.kid == jwtKid)[0]
+    const signatureVerificationKey: Key = Object.values(jwksKeys).filter(key => key.kid == jwtKid)[0]
+    //const signatureVerificationKey: Key = jwksKeys.keys.find(key => key.kid === jwtKid)[0];
+    logger.info(signatureVerificationKey)
 
     //5. Using the x5c property build a certificate which will be used to verify the JWT signature.
     let x5cCertificate = `-----BEGIN CERTIFICATE-----\n${signatureVerificationKey.x5c[0]}\n-----END CERTIFICATE-----`;
@@ -88,21 +97,14 @@ async function verifyToken(authHeader: string): Promise<JwtPayload> {
     verify(token,x5cCertificate)
     
     return Promise.resolve(jwt.payload);
-  }
-  catch(e)
-  {
-    logger.error(e)
-  }
-
-
   
 }
 
 function getToken(authHeader: string): string {
-  if (!authHeader) throw new Error('No authentication header')
+  if (!authHeader) throw new Error('No authorization header')
 
   if (!authHeader.toLowerCase().startsWith('bearer '))
-    throw new Error('Invalid authentication header')
+    throw new Error('Invalid authorization header')
 
   const split = authHeader.split(' ')
   const token = split[1]
