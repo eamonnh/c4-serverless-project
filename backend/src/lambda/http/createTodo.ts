@@ -17,8 +17,7 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     logger.info('Creating new TODO')
     
     //Get the userid from the jwtToken
-    const jwtToken = event.headers.Authorization.split(' ')[1]; 
-    const userId = parseUserId(jwtToken);
+    const userId = parseUserId(event.headers.Authorization.split(' ')[1]);
     logger.info('UserId from JwtToken ' + userId)
 
     //Create new todo item

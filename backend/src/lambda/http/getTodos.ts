@@ -1,10 +1,8 @@
 import 'source-map-support/register'
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
-import { CreateTodoRequest } from '../../requests/CreateTodoRequest'
-import { TodoItem } from '../../models/TodoItem';
-import { v4 as uuid } from 'uuid';
 import { createLogger } from '../../utils/logger'
 import { DynamoDB } from 'aws-sdk';
+import { parseUserId } from '../../auth/utils';
 
 const todosTable = process.env.TODOS_TABLE
 const todosIndex = process.env.INDEX_NAME
@@ -15,12 +13,16 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
   // TODO: Get all TODO items for a current user
  try {
       
+      //Get the userid from the jwtToken
+      const userId = parseUserId(event.headers.Authorization.split(' ')[1]);
+      logger.info('UserId from JwtToken ' + userId)
+
       // Filter for current user and use an INDEX for improved performance
       const params = {
         TableName: todosTable,
         IndexName: todosIndex,
         FilterExpression: 'userId=:u',
-        ExpressionAttributeValues: { ':u': 'Test123' }
+        ExpressionAttributeValues: { ':u': userId }
       };
 
       const todosList = await docClient.scan(params).promise();
