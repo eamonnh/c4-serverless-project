@@ -6,6 +6,7 @@ import { TodoItem } from '../../models/TodoItem';
 import { v4 as uuid } from 'uuid';
 import { createLogger } from '../../utils/logger'
 import { DynamoDB } from 'aws-sdk';
+import { parseUserId } from '../../auth/utils';
 
 const todosTable = process.env.TODOS_TABLE
 const logger = createLogger('http')
@@ -13,10 +14,15 @@ const docClient = new DynamoDB.DocumentClient();
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   try {
+    logger.info('Creating new TODO')
+    
+    //Get the userid from the jwtToken
+    const jwtToken = event.headers.Authorization.split(' ')[1]; 
+    const userId = parseUserId(jwtToken);
+    logger.info('UserId from JwtToken ' + userId)
 
     //Create new todo item
     const { name, dueDate }: CreateTodoRequest = JSON.parse(event.body)
-    const userId = 'Test123'
     const newTodo: TodoItem = {
       todoId: uuid(),
       userId: userId,

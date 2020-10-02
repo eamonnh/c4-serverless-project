@@ -49,6 +49,9 @@ functions:
       - http:
           method: post
           path: todos
+          cors: true
+          authorizer: Auth
+          reqValidatorName: RequestBodyValidator
 
   # TODO: Configure this function
   UpdateTodo:
@@ -58,6 +61,8 @@ functions:
           method: put
           path: todos/{todoId}
           cors: true
+          authorizer: Auth
+          reqValidatorName: RequestBodyValidator
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -73,6 +78,8 @@ functions:
           method: delete
           path: todos/{todoId}
           cors: true
+          authorizer: Auth
+          reqValidatorName: RequestBodyValidator
     iamRoleStatements:
       - Effect: Allow
         Action: dynamodb:DeleteItem
@@ -85,6 +92,9 @@ functions:
       - http:
           method: post
           path: todos/{todoId}/attachment
+          cors: true
+          authorizer: Auth
+          reqValidatorName: RequestBodyValidator
 
 resources:
   Resources:

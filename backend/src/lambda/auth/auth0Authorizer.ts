@@ -70,9 +70,6 @@ async function verifyToken(authHeader: string): Promise<JwtPayload> {
     const jwks = await Axios.get(jwksUrl);
     logger.info(jwks)
 
-    var jwksKeys: Jwks = jwks.data.keys;
-    logger.info(jwksKeys)
-
     //2. Extract the JWT from the request's authorization header. [Note this code was provided in starter template]
     const token = getToken(authHeader)
     logger.info(token)
@@ -84,7 +81,10 @@ async function verifyToken(authHeader: string): Promise<JwtPayload> {
     const jwtKid = jwt.header.kid
     logger.info(jwtKid)
 
-    //4. Find the signature verification key in the filtered JWKS with a matching kid property. 
+    //4. Find the signature verification key in the JWKS.data.keys array with a matching kid property.
+    var jwksKeys: Jwks = jwks.data.keys;
+    logger.info(jwksKeys)
+    
     const signatureVerificationKey: Key = Object.values(jwksKeys).filter(key => key.kid == jwtKid)[0]
     //const signatureVerificationKey: Key = jwksKeys.keys.find(key => key.kid === jwtKid)[0];
     logger.info(signatureVerificationKey)
