@@ -22,13 +22,13 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     //Create the SignedURL
     logger.info('Create SignedUrl for TodoID ' + todoId)
 
-    const url = s3.getSignedUrl('putObject', {
+    const uploadUrl = s3.getSignedUrl('putObject', {
       Bucket: bucket,
       Key: todoId + '.png',
       Expires: urlExpiration
     })
 
-    logger.info('SignedUrl created successfully ' + url)
+    logger.info('SignedUrl created successfully ' + uploadUrl)
 
     //Update the Todo item in the database with URL
     logger.info('Updating attachmentUrl attribute in database')
@@ -46,13 +46,13 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     }).promise();
 
     //SUCCESS
-    logger.info('Url created', { url });
+    logger.info('Url created', { uploadUrl });
     return {
       statusCode: 200,
       headers: {
         'Access-Control-Allow-Origin': '*'
       },
-      body: JSON.stringify({ url })
+      body: JSON.stringify({ uploadUrl })
     }
   }
   catch (e) {
