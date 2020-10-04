@@ -1,6 +1,7 @@
 import 'source-map-support/register'
 import { createLogger } from '../../utils/logger'
 import { DynamoDB } from 'aws-sdk';
+import { parseUserId } from '../../auth/utils';
 
 const todosTable = process.env.TODOS_TABLE
 const logger = createLogger('http')
@@ -19,9 +20,12 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
         logger.info('Updating todo ',{todoId});
 
+        //Get the userid from the jwtToken
+        const userId = parseUserId(event.headers.Authorization.split(' ')[1]);
+
         await docClient.update({
           TableName: todosTable,
-          Key: { todoId },
+          Key: { todoId, userId },
           UpdateExpression: 'set #name = :n, #dueDate = :due, #done = :d',
           ExpressionAttributeValues: {
               ':n': updatedTodo.name,

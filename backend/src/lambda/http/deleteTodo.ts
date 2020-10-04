@@ -1,8 +1,8 @@
 import 'source-map-support/register'
 import { createLogger } from '../../utils/logger'
 import { DynamoDB } from 'aws-sdk';
-
 import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
+import { parseUserId } from '../../auth/utils';
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   
@@ -13,10 +13,14 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
 
  
   try {
+    logger.info('Starting delete of Todo ' + todoId)
+
+    //Get the userid from the jwtToken
+    const userId = parseUserId(event.headers.Authorization.split(' ')[1]);
 
     const params = {
       TableName: todosTable,
-      Key: { todoId }
+      Key: { todoId, userId }
     };
 
     await docClient.delete(params).promise();

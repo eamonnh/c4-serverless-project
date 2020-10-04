@@ -18,14 +18,23 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
       logger.info('UserId from JwtToken ' + userId)
 
       // Filter for current user and use an INDEX for improved performance
-      const params = {
+      //const params = {
+      //  TableName: todosTable,
+      //  IndexName: todosIndex,
+      //  FilterExpression: 'userId=:u',
+      //  ExpressionAttributeValues: { ':u': userId }
+      //};
+
+      const todosList = await docClient
+      .query({
         TableName: todosTable,
         IndexName: todosIndex,
-        FilterExpression: 'userId=:u',
-        ExpressionAttributeValues: { ':u': userId }
-      };
-
-      const todosList = await docClient.scan(params).promise();
+        KeyConditionExpression: 'userId=:u',
+        ExpressionAttributeValues: {
+          ':u': userId
+        }
+      })
+      .promise()
 
       // Return SUCCESS
       logger.info('Get TODOs Successful!');

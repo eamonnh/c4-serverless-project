@@ -3,6 +3,7 @@ import * as AWS from 'aws-sdk';
 import { APIGatewayProxyEvent, APIGatewayProxyResult, APIGatewayProxyHandler } from 'aws-lambda'
 import { createLogger } from '../../utils/logger'
 import { DynamoDB } from 'aws-sdk';
+import { parseUserId } from '../../auth/utils';
 
 const docClient = new DynamoDB.DocumentClient();
 const logger = createLogger('http')
@@ -33,9 +34,12 @@ export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEven
     //Update the Todo item in the database with URL
     logger.info('Updating attachmentUrl attribute in database')
 
+    //Get the userid from the jwtToken
+    const userId = parseUserId(event.headers.Authorization.split(' ')[1]);
+
     await docClient.update({
       TableName: todosTable,
-      Key: { todoId },
+      Key: { todoId, userId },
       UpdateExpression: 'set #attachmentUrl = :a',
       ExpressionAttributeValues: {
           ':a': attachmentUrl
