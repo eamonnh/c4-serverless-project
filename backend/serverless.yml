@@ -4,6 +4,7 @@ service:
 plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
+  #- serverless-plugin-tracing
 
 provider:
   name: aws
@@ -12,6 +13,10 @@ provider:
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'eu-west-1'}
 
+  #tracing:
+  #  lambda: true
+  #  apiGateway: true
+
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
     INDEX_NAME: TodosIndex
@@ -19,6 +24,12 @@ provider:
     SIGNED_URL_EXPIRATION: 300
 
   iamRoleStatements:
+   # - Effect: "Allow"
+   #   Action:
+   #     - "xray:PutTraceSegments"
+   #     - "xray:PutTelemetryRecords"
+   #   Resource:
+   #     - "*"
     - Effect: Allow
       Action:
         - dynamodb:Scan
@@ -70,9 +81,7 @@ functions:
           reqValidatorName: RequestBodyValidator
     iamRoleStatements:
       - Effect: Allow
-        Action:
-          - dynamodb:GetItem
-          - dynamodb:UpdateItem
+        Action: dynamodb:UpdateItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
 
   # TODO: Configure this function
@@ -115,7 +124,7 @@ resources:
         ResponseParameters:
           gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
           gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST'"
+          gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,POST,PUT,DELETE,PATCH'"
         ResponseType: DEFAULT_4XX
         RestApiId:
           Ref: ApiGatewayRestApi

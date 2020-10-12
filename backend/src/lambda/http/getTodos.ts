@@ -1,13 +1,17 @@
 import 'source-map-support/register'
 import { APIGatewayProxyEvent, APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda'
 import { createLogger } from '../../utils/logger'
-import { DynamoDB } from 'aws-sdk';
+//import { DynamoDB } from 'aws-sdk';
 import { parseUserId } from '../../auth/utils';
+import * as AWS from 'aws-sdk'
+import * as AWSXRay from 'aws-xray-sdk'
+
+const XAWS = AWSXRay.captureAWS(AWS)
+const docClient = new XAWS.DynamoDB.DocumentClient();
 
 const todosTable = process.env.TODOS_TABLE
 const todosIndex = process.env.INDEX_NAME
 const logger = createLogger('http')
-const docClient = new DynamoDB.DocumentClient();
 
 export const handler: APIGatewayProxyHandler = async (event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
   // TODO: Get all TODO items for a current user
