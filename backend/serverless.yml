@@ -4,7 +4,7 @@ service:
 plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
-  #- serverless-plugin-tracing
+  - serverless-plugin-tracing
 
 provider:
   name: aws
@@ -13,9 +13,9 @@ provider:
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'eu-west-1'}
 
-  #tracing:
-  #  lambda: true
-  #  apiGateway: true
+  tracing:
+    lambda: true
+    apiGateway: true
 
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
@@ -24,12 +24,12 @@ provider:
     SIGNED_URL_EXPIRATION: 300
 
   iamRoleStatements:
-   # - Effect: "Allow"
-   #   Action:
-   #     - "xray:PutTraceSegments"
-   #     - "xray:PutTelemetryRecords"
-   #   Resource:
-   #     - "*"
+    - Effect: "Allow"
+      Action:
+        - "xray:PutTraceSegments"
+        - "xray:PutTelemetryRecords"
+      Resource:
+        - "*"
     - Effect: Allow
       Action:
         - dynamodb:Scan
