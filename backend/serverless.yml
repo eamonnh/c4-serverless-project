@@ -3,9 +3,10 @@ service:
 
 plugins:
   - serverless-webpack
+  - serverless-reqvalidator-plugin
+  - serverless-aws-documentation
   - serverless-iam-roles-per-function
   - serverless-plugin-tracing
-  - serverless-reqvalidator-plugin
 
 provider:
   name: aws
@@ -38,6 +39,19 @@ provider:
         - dynamodb:GetItem
       Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
 
+custom:
+
+  documentation:
+    api:
+      info:
+        version: v1.0.0
+        title: Udagram API            
+        description: Serverless application for creating posts with images
+    models:
+      - name: CreateTodoRequest
+        contentType: application/json
+        schema: ${file(src/models/create-todo-request.json)}
+
 functions:
 
   Auth:
@@ -52,7 +66,7 @@ functions:
           path: todos
           cors: true
           authorizer: Auth
-          reqValidatorName: RequestBodyValidator
+          #reqValidatorName: RequestBodyValidator
     iamRoleStatements:
       - Effect: Allow
         Action:
@@ -69,6 +83,11 @@ functions:
           cors: true
           authorizer: Auth
           reqValidatorName: RequestBodyValidator
+          documentation:
+            summary: Create a new group
+            description: Create a new group
+            requestModels:
+              'application/json': CreateTodoRequest
 
   # TODO: Configure this function
   UpdateTodo:
@@ -79,7 +98,7 @@ functions:
           path: todos/{todoId}
           cors: true
           authorizer: Auth
-          reqValidatorName: RequestBodyValidator
+          #reqValidatorName: RequestBodyValidator
     iamRoleStatements:
       - Effect: Allow
         Action: dynamodb:UpdateItem
@@ -94,7 +113,7 @@ functions:
           path: todos/{todoId}
           cors: true
           authorizer: Auth
-          reqValidatorName: RequestBodyValidator
+          #reqValidatorName: RequestBodyValidator
     iamRoleStatements:
       - Effect: Allow
         Action: dynamodb:DeleteItem
@@ -109,7 +128,7 @@ functions:
           path: todos/{todoId}/attachment
           cors: true
           authorizer: Auth
-          reqValidatorName: RequestBodyValidator
+          #reqValidatorName: RequestBodyValidator
     iamRoleStatements:
       - Effect: Allow
         Action:
